@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Spain flag: red-yellow-red horizontal stripes -->
+  <rect width="32" height="32" rx="4" fill="#c60b1e"/>
+  <!-- Yellow centre band (50% height) -->
+  <rect y="8" width="32" height="16" fill="#ffc400"/>
+  <!-- Coat of arms: simplified red pillar -->
+  <rect x="10" y="10" width="3" height="12" rx="1" fill="#c60b1e"/>
+  <rect x="10" y="10" width="3" height="2" rx="0" fill="#8B1A1A"/>
+  <!-- Crown top -->
+  <rect x="10" y="8.5" width="3" height="2" rx="1" fill="#c60b1e"/>
+</svg>
