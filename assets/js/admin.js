@@ -109,6 +109,29 @@
 				setTimeout(function () { $status.fadeOut(); }, 5000);
 			});
 		});
+
+		// Import all Elementor widget texts button.
+		$('#geolang-import-elementor').on('click', function () {
+			var $btn    = $(this);
+			var $status = $('#geolang-resync-status');
+
+			$btn.prop('disabled', true).text('⏳ Importando…');
+			$status.hide();
+
+			$.post(ajaxUrl, { action: 'geolang_import_elementor_text', nonce: nonce }, function (res) {
+				if (res.success) {
+					$status.text('✅ ' + res.data.message).show();
+					loadRows();
+				} else {
+					$status.text('❌ ' + (res.data && res.data.message ? res.data.message : 'Erro.')).show();
+				}
+			}).fail(function () {
+				$status.text('❌ Erro de rede.').show();
+			}).always(function () {
+				$btn.prop('disabled', false).text('📥 Importar textos do Elementor');
+				setTimeout(function () { $status.fadeOut(); }, 8000);
+			});
+		});
 	});
 
 	// -----------------------------------------------------------------------

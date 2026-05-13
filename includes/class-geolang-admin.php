@@ -269,6 +269,9 @@ class GeoLang_Admin {
 				<button class="button" id="geolang-resync-all" title="<?php esc_attr_e( 'Lê os dados Elementor de todas as páginas e atualiza a lista de traduções', 'geolang-multilingual' ); ?>" style="margin-left:auto;">
 					🔄 <?php esc_html_e( 'Re-sincronizar Elementor', 'geolang-multilingual' ); ?>
 				</button>
+				<button class="button" id="geolang-import-elementor" title="<?php esc_attr_e( 'Importa todos os textos dos widgets Elementor (Heading, Button, Text Editor, etc.) para a tabela de traduções', 'geolang-multilingual' ); ?>">
+					📥 <?php esc_html_e( 'Importar textos do Elementor', 'geolang-multilingual' ); ?>
+				</button>
 				<span id="geolang-resync-status" style="font-style:italic;color:#646970;display:none;"></span>
 			</div>
 

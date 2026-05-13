@@ -28,8 +28,13 @@ class GeoLang_Elementor {
 
 		// AJAX: manual re-sync of a single post (triggered from admin panel).
 		add_action( 'wp_ajax_geolang_resync_post', array( $this, 'ajax_resync_post' ) );
-		// AJAX: re-sync ALL posts that have _elementor_data.
+		// AJAX: re-sync ALL posts that have _elementor_data (GeoLang-tagged fields only).
 		add_action( 'wp_ajax_geolang_resync_all', array( $this, 'ajax_resync_all' ) );
+		// AJAX: import raw text from ALL Elementor widgets into the translations table.
+		add_action( 'wp_ajax_geolang_import_elementor_text', array( $this, 'ajax_import_elementor_text' ) );
+
+		// Frontend: inject translations into Elementor widgets before they render.
+		add_action( 'elementor/frontend/widget/before_render_content', array( $this, 'inject_widget_translation' ) );
 	}
 
 	/**
@@ -141,6 +146,173 @@ class GeoLang_Elementor {
 		}
 
 		wp_send_json_success( array( 'synced' => $synced, 'message' => $synced . ' página(s) re-sincronizadas.' ) );
+	}
+
+	// -----------------------------------------------------------------------
+	// Text widget field map
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Returns the list of translatable text field names for each Elementor widget type.
+	 * Used both for import and for frontend injection.
+	 *
+	 * @return array  { widget_type: [field_name, ...] }
+	 */
+	public static function text_widget_fields() {
+		return array(
+			'heading'          => array( 'title' ),
+			'text-editor'      => array( 'editor' ),
+			'button'           => array( 'text' ),
+			'icon-box'         => array( 'title_text', 'description_text' ),
+			'image-box'        => array( 'title_text', 'description' ),
+			'counter'          => array( 'prefix', 'suffix' ),
+			'testimonial'      => array( 'testimonial_content', 'testimonial_name', 'testimonial_job' ),
+			'alert'            => array( 'alert_title', 'alert_description' ),
+			'accordion'        => array(), // items handled separately
+			'tabs'             => array(), // items handled separately
+			'toggle'           => array(), // items handled separately
+			'divider'          => array( 'text' ),
+			'text-path'        => array( 'text' ),
+			'animated-headline'=> array( 'before_text', 'highlighted_text', 'after_text' ),
+			'price-table'      => array( 'heading', 'sub_heading', 'period', 'button_text' ),
+			'flip-box'         => array( 'title_text_a', 'description_text_a', 'title_text_b', 'description_text_b', 'button_text' ),
+			'call-to-action'   => array( 'title', 'description', 'button' ),
+			'nav-menu'         => array(),
+		);
+	}
+
+	// -----------------------------------------------------------------------
+	// AJAX: import raw text from Elementor widgets
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Scans all Elementor pages, extracts text from common widgets,
+	 * and upserts rows in geolang_strings so they appear in Gerenciar Traduções.
+	 *
+	 * Uses field_key = "elem_{widget_id}_{field_name}" to avoid collision with
+	 * manually-created keys.
+	 *
+	 * Existing lang_en / lang_es translations are NEVER overwritten.
+	 */
+	public function ajax_import_elementor_text() {
+		check_ajax_referer( 'geolang_admin', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( array( 'message' => 'Permissão negada.' ), 403 );
+		}
+
+		global $wpdb;
+		$table   = GeoLang_Core::table();
+		$map     = self::text_widget_fields();
+		$imported = 0;
+
+		$post_ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			"SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_elementor_data'" // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		);
+
+		foreach ( $post_ids as $raw_pid ) {
+			$post_id = absint( $raw_pid );
+			$raw     = get_post_meta( $post_id, '_elementor_data', true );
+			$data    = $raw ? ( is_string( $raw ) ? json_decode( $raw, true ) : $raw ) : null;
+			if ( ! is_array( $data ) ) {
+				continue;
+			}
+
+			$widgets = $this->collect_widgets( $data );
+
+			foreach ( $widgets as $widget ) {
+				$widget_type = $widget['widgetType'] ?? '';
+				$widget_id   = $widget['id'] ?? '';
+				$settings    = $widget['settings'] ?? array();
+
+				if ( ! isset( $map[ $widget_type ] ) ) {
+					continue;
+				}
+
+				foreach ( $map[ $widget_type ] as $field ) {
+					$pt = isset( $settings[ $field ] ) ? wp_strip_all_tags( $settings[ $field ] ) : '';
+					$pt = trim( $pt );
+
+					if ( '' === $pt ) {
+						continue;
+					}
+
+					$field_key = 'elem_' . $widget_id . '_' . $field;
+
+					// Check existing row — never overwrite existing EN/ES.
+					$existing = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+						$wpdb->prepare(
+							"SELECT lang_en, lang_es FROM {$table} WHERE post_id = %d AND field_key = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+							$post_id,
+							$field_key
+						)
+					);
+
+					$lang_en = $existing ? $existing->lang_en : '';
+					$lang_es = $existing ? $existing->lang_es : '';
+
+					$wpdb->replace( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+						$table,
+						array(
+							'post_id'    => $post_id,
+							'field_key'  => $field_key,
+							'field_type' => 'text',
+							'lang_pt'    => $pt,
+							'lang_en'    => $lang_en,
+							'lang_es'    => $lang_es,
+						),
+						array( '%d', '%s', '%s', '%s', '%s', '%s' )
+					);
+
+					$imported++;
+				}
+			}
+		}
+
+		wp_send_json_success( array(
+			'imported' => $imported,
+			'message'  => $imported . ' campo(s) importado(s) do Elementor.',
+		) );
+	}
+
+	// -----------------------------------------------------------------------
+	// Frontend: inject widget translations before render
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Replaces Elementor widget text fields with the translated version
+	 * when the visitor's language differs from the site default.
+	 *
+	 * Fires on: elementor/frontend/widget/before_render_content
+	 *
+	 * @param \Elementor\Widget_Base $widget
+	 */
+	public function inject_widget_translation( $widget ) {
+		$lang    = GeoLang_Session::current();
+		$default = get_option( 'geolang_default_lang', 'pt' );
+
+		if ( $lang === $default ) {
+			return;
+		}
+
+		$map         = self::text_widget_fields();
+		$widget_type = $widget->get_name();
+
+		if ( ! isset( $map[ $widget_type ] ) || empty( $map[ $widget_type ] ) ) {
+			return;
+		}
+
+		$post_id   = absint( get_the_ID() );
+		$widget_id = $widget->get_id();
+
+		foreach ( $map[ $widget_type ] as $field ) {
+			$field_key  = 'elem_' . $widget_id . '_' . $field;
+			$translated = GeoLang_Core::get_field( $post_id, $field_key, $lang, '' );
+
+			if ( '' !== $translated ) {
+				$widget->set_settings( $field, $translated );
+			}
+		}
 	}
 
 	// -----------------------------------------------------------------------
