@@ -110,6 +110,32 @@
 			});
 		});
 
+		// Delete all auto-imported (elem_*) entries.
+		$('#geolang-delete-imported').on('click', function () {
+			if ( ! confirm('Remover todos os campos importados automaticamente (chaves "elem_...")?\n\nIsso NÃO apaga campos criados manualmente com Dynamic Tags.') ) {
+				return;
+			}
+			var $btn    = $(this);
+			var $status = $('#geolang-resync-status');
+
+			$btn.prop('disabled', true).text('⏳ Removendo…');
+			$status.hide();
+
+			$.post(ajaxUrl, { action: 'geolang_delete_imported', nonce: nonce }, function (res) {
+				if (res.success) {
+					$status.text('✅ ' + res.data.message).show();
+					loadRows();
+				} else {
+					$status.text('❌ ' + (res.data && res.data.message ? res.data.message : 'Erro.')).show();
+				}
+			}).fail(function () {
+				$status.text('❌ Erro de rede.').show();
+			}).always(function () {
+				$btn.prop('disabled', false).text('🗑️ Limpar importados');
+				setTimeout(function () { $status.fadeOut(); }, 6000);
+			});
+		});
+
 		// Import all Elementor widget texts button.
 		$('#geolang-import-elementor').on('click', function () {
 			var $btn    = $(this);

@@ -11,6 +11,7 @@ class GeoLang_Admin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_action( 'admin_post_geolang_save_settings', array( $this, 'save_settings' ) );
 		add_action( 'wp_ajax_geolang_check_updates_now', array( $this, 'ajax_check_updates_now' ) );
+		add_action( 'wp_ajax_geolang_delete_imported', array( $this, 'ajax_delete_imported' ) );
 	}
 
 	// -----------------------------------------------------------------------
@@ -272,6 +273,9 @@ class GeoLang_Admin {
 				<button class="button" id="geolang-import-elementor" title="<?php esc_attr_e( 'Importa todos os textos dos widgets Elementor (Heading, Button, Text Editor, etc.) para a tabela de traduções', 'geolang-multilingual' ); ?>">
 					📥 <?php esc_html_e( 'Importar textos do Elementor', 'geolang-multilingual' ); ?>
 				</button>
+				<button class="button" id="geolang-delete-imported" title="<?php esc_attr_e( 'Remove todas as entradas importadas automaticamente (chaves que começam com elem_). Não apaga campos criados manualmente.', 'geolang-multilingual' ); ?>" style="color:#d63638;border-color:#d63638;">
+					🗑️ <?php esc_html_e( 'Limpar importados', 'geolang-multilingual' ); ?>
+				</button>
 				<span id="geolang-resync-status" style="font-style:italic;color:#646970;display:none;"></span>
 			</div>
 
@@ -453,54 +457,6 @@ class GeoLang_Admin {
 			</form>
 		</div>
 
-		<script>
-		(function($) {
-			$('#geolang-test-ai').on('click', function() {
-				var $btn = $(this);
-				var $result = $('#geolang-test-ai-result');
-				$btn.prop('disabled', true).text('Testando…');
-				$result.text('');
-
-				$.post(<?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>, {
-					action: 'geolang_ai_test_connection',
-					nonce:  <?php echo wp_json_encode( wp_create_nonce( 'geolang_admin' ) ); ?>,
-				}, function(res) {
-					if (res.success) {
-						$result.text('✅ OK! Amostra: "' + res.data.sample + '"').css('color', '#00a32a');
-					} else {
-						$result.text('❌ ' + (res.data && res.data.message ? res.data.message : 'Erro')).css('color', '#d63638');
-					}
-				}).fail(function() {
-					$result.text('❌ Erro de rede.').css('color', '#d63638');
-				}).always(function() {
-					$btn.prop('disabled', false).text(<?php echo wp_json_encode( __( 'Testar conexão', 'geolang-multilingual' ) ); ?>);
-				});
-			});
-
-			$('#geolang-check-updates-now').on('click', function () {
-				var $btn = $(this);
-				var $result = $('#geolang-update-check-result');
-				$btn.prop('disabled', true).text('Verificando…');
-				$result.text('');
-
-				$.post(<?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>, {
-					action: 'geolang_check_updates_now',
-					nonce:  <?php echo wp_json_encode( wp_create_nonce( 'geolang_admin' ) ); ?>,
-				}, function(res) {
-					if (res.success) {
-						$result.text(res.data.message).css('color', '#00a32a');
-					} else {
-						$result.text('❌ ' + (res.data && res.data.message ? res.data.message : 'Erro')).css('color', '#d63638');
-					}
-				}).fail(function() {
-					$result.text('❌ Erro de rede.').css('color', '#d63638');
-				}).always(function() {
-					$btn.prop('disabled', false).text('🔍 Verificar agora');
-				});
-			});
-		})(jQuery);
-		</script>
-
 		<?php
 		// ── GitHub auto-update section ────────────────────────────────────────
 		?>
@@ -530,6 +486,56 @@ class GeoLang_Admin {
 				</td>
 			</tr>
 		</table>
+
+		<script>
+		(function($) {
+			// Testar conexão OpenRouter.
+			$('#geolang-test-ai').on('click', function() {
+				var $btn = $(this);
+				var $result = $('#geolang-test-ai-result');
+				$btn.prop('disabled', true).text('Testando…');
+				$result.text('');
+
+				$.post(<?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>, {
+					action: 'geolang_ai_test_connection',
+					nonce:  <?php echo wp_json_encode( wp_create_nonce( 'geolang_admin' ) ); ?>,
+				}, function(res) {
+					if (res.success) {
+						$result.text('✅ OK! Amostra: "' + res.data.sample + '"').css('color', '#00a32a');
+					} else {
+						$result.text('❌ ' + (res.data && res.data.message ? res.data.message : 'Erro')).css('color', '#d63638');
+					}
+				}).fail(function() {
+					$result.text('❌ Erro de rede.').css('color', '#d63638');
+				}).always(function() {
+					$btn.prop('disabled', false).text(<?php echo wp_json_encode( __( 'Testar conexão', 'geolang-multilingual' ) ); ?>);
+				});
+			});
+
+			// Verificar nova versão no GitHub.
+			$('#geolang-check-updates-now').on('click', function () {
+				var $btn = $(this);
+				var $result = $('#geolang-update-check-result');
+				$btn.prop('disabled', true).text('Verificando…');
+				$result.text('').show();
+
+				$.post(<?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>, {
+					action: 'geolang_check_updates_now',
+					nonce:  <?php echo wp_json_encode( wp_create_nonce( 'geolang_admin' ) ); ?>,
+				}, function(res) {
+					if (res.success) {
+						$result.text(res.data.message).css('color', '#00a32a');
+					} else {
+						$result.text('❌ ' + (res.data && res.data.message ? res.data.message : 'Erro')).css('color', '#d63638');
+					}
+				}).fail(function() {
+					$result.text('❌ Erro de rede.').css('color', '#d63638');
+				}).always(function() {
+					$btn.prop('disabled', false).text('🔍 Verificar agora');
+				});
+			});
+		})(jQuery);
+		</script>
 
 		<?php
 	}
@@ -600,6 +606,32 @@ class GeoLang_Admin {
 
 		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'admin.php?page=geolang-settings' ) ) );
 		exit;
+	}
+
+	// -----------------------------------------------------------------------
+	// AJAX: delete all auto-imported entries (field_key LIKE 'elem_%')
+	// -----------------------------------------------------------------------
+
+	public function ajax_delete_imported() {
+		check_ajax_referer( 'geolang_admin', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( array( 'message' => 'Permissão negada.' ), 403 );
+		}
+
+		global $wpdb;
+		$table   = GeoLang_Core::table();
+		$deleted = $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->prepare(
+				"DELETE FROM {$table} WHERE field_key LIKE %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'elem\_%'
+			)
+		);
+
+		wp_send_json_success( array(
+			'deleted' => $deleted,
+			'message' => $deleted . ' campo(s) importado(s) removido(s).',
+		) );
 	}
 
 	// -----------------------------------------------------------------------
