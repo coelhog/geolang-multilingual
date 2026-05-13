@@ -4,7 +4,7 @@ Tags: multilingual, elementor, translation, language switcher, dynamic tags
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.17
+Stable tag: 1.0.18
 License: GPLv2 or later
 
 Gerenciador de conteúdo multilíngue para páginas Elementor Pro (PT / EN / ES).
@@ -89,6 +89,9 @@ Ao desinstalar o plugin em Plugins → Excluir, todos os dados são removidos:
 tabela `{prefix}geolang_strings`, opções do WordPress e transients.
 
 == Changelog ==
+
+= 1.0.18 =
+* Teste de auto-updater via GitHub Releases.
 
 = 1.0.17 =
 * Novo: botão "📥 Importar textos do Elementor" em Gerenciar Traduções — escaneia todas as páginas Elementor e importa textos de widgets (Heading, Button, Text Editor, Icon Box, Image Box, etc.) diretamente para a tabela de traduções, preservando traduções EN/ES já existentes.
