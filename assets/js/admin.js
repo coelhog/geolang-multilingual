@@ -110,6 +110,45 @@
 			});
 		});
 
+		// Excluir selecionados.
+		$('#geolang-delete-selected').on('click', function () {
+			var ids = [];
+			$('#geolang-table-body .geolang-row-check:checked').each(function () {
+				ids.push($(this).val());
+			});
+
+			if (!ids.length) {
+				$('#geolang-bulk-status').text('⚠️ Nenhuma linha selecionada.');
+				setTimeout(function () { $('#geolang-bulk-status').text(''); }, 3000);
+				return;
+			}
+
+			if (!confirm('Excluir ' + ids.length + ' item(s) selecionado(s)?\nEsta ação não pode ser desfeita.')) return;
+
+			var $btn    = $(this);
+			var $status = $('#geolang-bulk-status');
+			$btn.prop('disabled', true).text('⏳ Excluindo…');
+
+			$.post(ajaxUrl, { action: 'geolang_delete_selected', nonce: nonce, ids: ids }, function (res) {
+				if (res.success) {
+					$status.text('✅ ' + res.data.message);
+					// Remove rows from DOM instantly.
+					ids.forEach(function (id) {
+						$('#geolang-table-body tr[data-id="' + id + '"]').remove();
+					});
+					// Update select-all state.
+					$('#geolang-check-all').prop('checked', false);
+				} else {
+					$status.text('❌ ' + (res.data && res.data.message ? res.data.message : 'Erro.'));
+				}
+			}).fail(function () {
+				$status.text('❌ Erro de rede.');
+			}).always(function () {
+				$btn.prop('disabled', false).text('🗑️ Excluir selecionados');
+				setTimeout(function () { $status.text(''); }, 5000);
+			});
+		});
+
 		// Delete all auto-imported (elem_*) entries.
 		$('#geolang-delete-imported').on('click', function () {
 			if ( ! confirm('Remover todos os campos importados automaticamente (chaves "elem_...")?\n\nIsso NÃO apaga campos criados manualmente com Dynamic Tags.') ) {

@@ -4,7 +4,7 @@ Tags: multilingual, elementor, translation, language switcher, dynamic tags
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.19
+Stable tag: 1.0.20
 License: GPLv2 or later
 
 Gerenciador de conteúdo multilíngue para páginas Elementor Pro (PT / EN / ES).
@@ -89,6 +89,11 @@ Ao desinstalar o plugin em Plugins → Excluir, todos os dados são removidos:
 tabela `{prefix}geolang_strings`, opções do WordPress e transients.
 
 == Changelog ==
+
+= 1.0.20 =
+* Fix: Dynamic Tag "GeoLang – Texto" em botões mostrava HTML cru no editor Elementor — agora exibe texto puro no editor e span com data attributes no frontend.
+* Novo: botão "🗑️ Excluir selecionados" em Gerenciar Traduções — apaga em lote as linhas marcadas com confirmação.
+* Melhoria: botões "Traduzir selecionados" e "Excluir selecionados" agrupados acima da tabela.
 
 = 1.0.19 =
 * Fix: botão "Verificar agora" não respondia — script estava antes do HTML do botão (sem document.ready).

@@ -15,20 +15,19 @@
 	if (!ajaxUrl || !nonce) return;
 
 	// -----------------------------------------------------------------------
-	// Inject batch button after filter bar
+	// "Traduzir selecionados" — button is now static in PHP HTML
 	// -----------------------------------------------------------------------
 
 	$(function () {
 		if (!$('#geolang-table-body').length) return;
-		if (!aiCfg.hasApiKey) return;
 
-		// "Traduzir selecionados" — principal botão de tradução em lote.
-		var $selBtn = $('<button class="button geolang-ai-batch-btn" id="geolang-ai-selected" style="margin-left:auto;">'
-			+ '✨ Traduzir selecionados'
-			+ '</button>');
-		var $selStatus = $('<span id="geolang-ai-batch-status" style="margin-left:8px;font-style:italic;color:#646970;display:none;"></span>');
+		var $selBtn    = $('#geolang-ai-translate-selected');
+		var $bulkStatus = $('#geolang-bulk-status');
 
-		$('.geolang-filters').append($selBtn).append($selStatus);
+		// Hide the translate button if no API key configured.
+		if (!aiCfg.hasApiKey) {
+			$selBtn.hide();
+		}
 
 		$selBtn.on('click', function () {
 			var ids = [];
@@ -37,15 +36,15 @@
 			});
 
 			if (!ids.length) {
-				$selStatus.text('⚠️ Nenhuma linha selecionada.').show();
-				setTimeout(function () { $selStatus.fadeOut(); }, 3000);
+				$bulkStatus.text('⚠️ Nenhuma linha selecionada.');
+				setTimeout(function () { $bulkStatus.text(''); }, 3000);
 				return;
 			}
 
 			if (!confirm('Traduzir ' + ids.length + ' item(s) selecionado(s)?')) return;
 
 			$selBtn.prop('disabled', true).text('⏳ Traduzindo…');
-			$selStatus.hide();
+			$bulkStatus.text('');
 
 			$.post(ajaxUrl, {
 				action: 'geolang_ai_translate_selected',
@@ -57,9 +56,9 @@
 					if (res.data.errors && res.data.errors.length) {
 						msg += ' ⚠️ ' + res.data.errors.length + ' erro(s).';
 					}
-					$selStatus.text(msg).show();
+					$bulkStatus.text(msg);
 
-					// Update rows inline so user sees result immediately.
+					// Update rows inline.
 					if (res.data.results) {
 						$.each(res.data.results, function (rowId, vals) {
 							var $tr = $('#geolang-table-body tr[data-id="' + rowId + '"]');
@@ -77,13 +76,13 @@
 						});
 					}
 				} else {
-					$selStatus.text('❌ ' + (res.data && res.data.message ? res.data.message : 'Erro.')).show();
+					$bulkStatus.text('❌ ' + (res.data && res.data.message ? res.data.message : 'Erro.'));
 				}
 			}).fail(function () {
-				$selStatus.text('❌ Erro de rede.').show();
+				$bulkStatus.text('❌ Erro de rede.');
 			}).always(function () {
 				$selBtn.prop('disabled', false).text('✨ Traduzir selecionados');
-				setTimeout(function () { $selStatus.fadeOut(); }, 6000);
+				setTimeout(function () { $bulkStatus.text(''); }, 6000);
 			});
 		});
 	});

@@ -669,7 +669,19 @@ class GeoLang_Text_Tag extends \Elementor\Core\DynamicTags\Tag {
 			return;
 		}
 
-		// Output all 3 langs as data attributes — JS swaps without reload.
+		// In the Elementor editor, output plain text — the editor renders widget
+		// text fields as text nodes, so HTML tags would show as raw markup.
+		$is_editor = isset( \Elementor\Plugin::$instance->editor ) &&
+		             \Elementor\Plugin::$instance->editor->is_edit_mode();
+
+		if ( $is_editor ) {
+			$lang = GeoLang_Session::current();
+			$val  = GeoLang_Core::get_field( get_the_ID(), $field_key, $lang, $fallback );
+			echo esc_html( $val ?: $fallback );
+			return;
+		}
+
+		// Frontend: output span with all 3 lang data attributes — JS swaps instantly.
 		$this->render_text_field( $field_key, $fallback );
 	}
 
