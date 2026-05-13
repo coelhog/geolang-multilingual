@@ -22,10 +22,10 @@ class GeoLang_Updater {
 	/** Plugin basename: geolang-multilingual/geolang-multilingual.php */
 	private $basename;
 
-	/** GitHub owner/repo slug, e.g. "gecoelho/geolang-multilingual" */
-	private $github_repo;
+	/** GitHub owner/repo — público, sem necessidade de token. */
+	const GITHUB_REPO = 'coelhog/geolang-multilingual';
 
-	/** Optional GitHub personal access token (needed for private repos). */
+	/** Optional GitHub personal access token (override via GeoLang settings for private forks). */
 	private $github_token;
 
 	/** Transient key for caching the API response. */
@@ -33,20 +33,14 @@ class GeoLang_Updater {
 
 	public function __construct() {
 		$this->basename     = GEOLANG_BASENAME;
-		$this->github_repo  = get_option( 'geolang_github_repo', '' );
 		$this->github_token = get_option( 'geolang_github_token', '' );
-
-		// Nothing to do without a repo configured.
-		if ( ! $this->github_repo ) {
-			return;
-		}
 
 		// Hook into WordPress update system.
 		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'inject_update' ) );
 		add_filter( 'plugins_api',                           array( $this, 'plugin_info' ), 10, 3 );
 		add_action( 'upgrader_process_complete',             array( $this, 'purge_cache' ), 10, 2 );
 
-		// Add Authorization header when WordPress downloads the asset (needed for private repos).
+		// Add Authorization header when WordPress downloads the asset (private fork support).
 		add_filter( 'http_request_args', array( $this, 'maybe_add_auth_header' ), 10, 2 );
 	}
 
@@ -65,7 +59,7 @@ class GeoLang_Updater {
 			return $cached;
 		}
 
-		$url  = 'https://api.github.com/repos/' . $this->github_repo . '/releases/latest';
+		$url  = 'https://api.github.com/repos/' . self::GITHUB_REPO . '/releases/latest';
 		$args = array(
 			'timeout' => 15,
 			'headers' => array(
@@ -155,7 +149,7 @@ class GeoLang_Updater {
 			'slug'          => 'geolang-multilingual',
 			'plugin'        => $this->basename,
 			'new_version'   => $latest_version,
-			'url'           => 'https://github.com/' . $this->github_repo,
+			'url'           => 'https://github.com/' . self::GITHUB_REPO,
 			'package'       => $download_url,
 			'icons'         => array(),
 			'banners'       => array(),
@@ -199,14 +193,14 @@ class GeoLang_Updater {
 			'slug'              => 'geolang-multilingual',
 			'version'           => $latest_version,
 			'author'            => 'GeoLang',
-			'homepage'          => 'https://github.com/' . $this->github_repo,
+			'homepage'          => 'https://github.com/' . self::GITHUB_REPO,
 			'requires'          => '6.0',
 			'tested'            => '6.5',
 			'requires_php'      => '7.4',
 			'downloaded'        => 0,
 			'last_updated'      => $release['published_at'] ?? '',
 			'sections'          => array(
-				'changelog' => $changelog ?: '<p>Ver <a href="https://github.com/' . esc_attr( $this->github_repo ) . '/releases" target="_blank">GitHub Releases</a>.</p>',
+				'changelog' => $changelog ?: '<p>Ver <a href="https://github.com/' . esc_attr( self::GITHUB_REPO ) . '/releases" target="_blank">GitHub Releases</a>.</p>',
 			),
 			'download_link'     => $download_url,
 			'short_description' => 'Multilingual manager for Elementor (PT / EN / ES).',

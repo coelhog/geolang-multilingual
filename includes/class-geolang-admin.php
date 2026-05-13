@@ -499,52 +499,15 @@ class GeoLang_Admin {
 
 		<?php
 		// ── GitHub auto-update section ────────────────────────────────────────
-		$gh_repo  = get_option( 'geolang_github_repo', '' );
-		$gh_token = get_option( 'geolang_github_token', '' );
 		?>
 		<hr style="margin:32px 0 24px;" />
 
-		<h2 style="margin-bottom:4px;">🔄 <?php esc_html_e( 'Atualizações Automáticas (GitHub)', 'geolang-multilingual' ); ?></h2>
+		<h2 style="margin-bottom:4px;">🔄 <?php esc_html_e( 'Atualizações Automáticas', 'geolang-multilingual' ); ?></h2>
 		<p class="description" style="margin-bottom:16px;">
-			<?php esc_html_e( 'Configure um repositório GitHub para que o WordPress detecte novas versões e permita atualizar com 1 clique, igual a um plugin do WordPress.org.', 'geolang-multilingual' ); ?>
+			<?php esc_html_e( 'O plugin verifica atualizações automaticamente. Quando uma nova versão for publicada, o botão "Atualizar" aparece em Plugins — igual ao WordPress.org.', 'geolang-multilingual' ); ?>
 		</p>
 
 		<table class="form-table" role="presentation">
-			<tr>
-				<th scope="row">
-					<label for="geolang_github_repo"><?php esc_html_e( 'Repositório', 'geolang-multilingual' ); ?></label>
-				</th>
-				<td>
-					<input type="text"
-						name="geolang_github_repo"
-						id="geolang_github_repo"
-						value="<?php echo esc_attr( $gh_repo ); ?>"
-						placeholder="usuario/geolang-multilingual"
-						class="regular-text"
-						autocomplete="off" />
-					<p class="description"><?php esc_html_e( 'Formato: usuario/repositorio (ex: gecoelho/geolang-multilingual)', 'geolang-multilingual' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row">
-					<label for="geolang_github_token"><?php esc_html_e( 'Token de Acesso (opcional)', 'geolang-multilingual' ); ?></label>
-				</th>
-				<td>
-					<input type="text"
-						name="geolang_github_token"
-						id="geolang_github_token"
-						value="<?php echo esc_attr( $gh_token ); ?>"
-						placeholder="ghp_xxxxxxxxxxxx"
-						class="regular-text"
-						autocomplete="off"
-						style="font-family:monospace;" />
-					<p class="description">
-						<?php esc_html_e( 'Necessário apenas para repositórios privados. Crie em:', 'geolang-multilingual' ); ?>
-						<a href="https://github.com/settings/tokens/new?scopes=repo&description=GeoLang+Updater" target="_blank">github.com/settings/tokens</a>
-						<?php esc_html_e( '(escopo: repo)', 'geolang-multilingual' ); ?>
-					</p>
-				</td>
-			</tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Versão instalada', 'geolang-multilingual' ); ?></th>
 				<td>
@@ -554,12 +517,15 @@ class GeoLang_Admin {
 					<span id="geolang-update-check-result" style="margin-left:10px;font-style:italic;"></span>
 				</td>
 			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Repositório', 'geolang-multilingual' ); ?></th>
+				<td>
+					<a href="https://github.com/<?php echo esc_attr( GeoLang_Updater::GITHUB_REPO ); ?>" target="_blank">
+						github.com/<?php echo esc_html( GeoLang_Updater::GITHUB_REPO ); ?>
+					</a>
+				</td>
+			</tr>
 		</table>
-
-		<p style="margin-top:8px;">
-			<strong><?php esc_html_e( 'Como usar:', 'geolang-multilingual' ); ?></strong>
-			<?php esc_html_e( 'No GitHub, crie uma Release com a tag vX.Y.Z e anexe o arquivo geolang-multilingual.zip. O WordPress detecta em até 12h (ou use "Verificar agora").', 'geolang-multilingual' ); ?>
-		</p>
 
 		<?php
 	}
@@ -619,14 +585,7 @@ class GeoLang_Admin {
 			}
 		}
 
-		// GitHub auto-update settings.
-		if ( isset( $_POST['geolang_github_repo'] ) ) {
-			$repo = sanitize_text_field( wp_unslash( $_POST['geolang_github_repo'] ) );
-			// Accept only "user/repo" format.
-			$repo = preg_replace( '/[^a-zA-Z0-9_.\-\/]/', '', $repo );
-			update_option( 'geolang_github_repo', $repo );
-		}
-
+		// GitHub auto-update: clear cache so new check uses fresh data.
 		if ( isset( $_POST['geolang_github_token'] ) ) {
 			$token = sanitize_text_field( wp_unslash( $_POST['geolang_github_token'] ) );
 			update_option( 'geolang_github_token', $token );
@@ -652,11 +611,6 @@ class GeoLang_Admin {
 
 		// Clear cache so next check hits the API fresh.
 		GeoLang_Updater::clear_cache();
-
-		$repo = get_option( 'geolang_github_repo', '' );
-		if ( ! $repo ) {
-			wp_send_json_error( array( 'message' => 'Repositório GitHub não configurado.' ) );
-		}
 
 		// Re-instantiate updater (it reads options fresh).
 		$updater = new GeoLang_Updater();

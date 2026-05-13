@@ -4,7 +4,7 @@ Tags: multilingual, elementor, translation, language switcher, dynamic tags
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.14
+Stable tag: 1.0.15
 License: GPLv2 or later
 
 Gerenciador de conteúdo multilíngue para páginas Elementor Pro (PT / EN / ES).
@@ -89,6 +89,9 @@ Ao desinstalar o plugin em Plugins → Excluir, todos os dados são removidos:
 tabela `{prefix}geolang_strings`, opções do WordPress e transients.
 
 == Changelog ==
+
+= 1.0.15 =
+* Melhoria: auto-updater agora funciona sem configuração — repositório público fixo, WordPress detecta novas versões automaticamente.
 
 = 1.0.14 =
 * Novo: auto-updater via GitHub Releases — configure o repo em GeoLang → Configurações e o WordPress detecta novas versões automaticamente com 1 clique para instalar.
