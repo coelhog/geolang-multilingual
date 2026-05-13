@@ -475,6 +475,7 @@ class GeoLang_Admin {
 				}).always(function() {
 					$btn.prop('disabled', false).text(<?php echo wp_json_encode( __( 'Testar conexão', 'geolang-multilingual' ) ); ?>);
 				});
+			});
 
 			$('#geolang-check-updates-now').on('click', function () {
 				var $btn = $(this);
