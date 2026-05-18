@@ -4,7 +4,7 @@ Tags: multilingual, elementor, translation, language switcher, dynamic tags
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.20
+Stable tag: 1.0.21
 License: GPLv2 or later
 
 Gerenciador de conteúdo multilíngue para páginas Elementor Pro (PT / EN / ES).
@@ -89,6 +89,10 @@ Ao desinstalar o plugin em Plugins → Excluir, todos os dados são removidos:
 tabela `{prefix}geolang_strings`, opções do WordPress e transients.
 
 == Changelog ==
+
+= 1.0.21 =
+* Fix: Dynamic Tag "GeoLang – Texto" mostrava HTML cru em botões, inputs e placeholders no frontend — agora emite sempre texto puro.
+* Novo: registry GeoLangDT no footer + substituição por nós de texto no DOM — troca instantânea de idioma funciona mesmo sem o span (cobre text nodes, placeholder e value attributes).
 
 = 1.0.20 =
 * Fix: Dynamic Tag "GeoLang – Texto" em botões mostrava HTML cru no editor Elementor — agora exibe texto puro no editor e span com data attributes no frontend.

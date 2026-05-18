@@ -3,7 +3,7 @@
  * Plugin Name:       GeoLang – Multilingual Manager
  * Plugin URI:
  * Description:       Multilingual content manager for Elementor Pro pages. Supports PT, EN and ES with language switcher, Dynamic Tags and a centralized translation panel.
- * Version:           1.0.20
+ * Version:           1.0.21
  * Author:            GeoLang
  * Text Domain:       geolang-multilingual
  * Domain Path:       /languages
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'GEOLANG_VERSION', '1.0.20' );
+define( 'GEOLANG_VERSION', '1.0.21' );
 define( 'GEOLANG_PATH', plugin_dir_path( __FILE__ ) );
 define( 'GEOLANG_URL', plugin_dir_url( __FILE__ ) );
 define( 'GEOLANG_BASENAME', plugin_basename( __FILE__ ) );

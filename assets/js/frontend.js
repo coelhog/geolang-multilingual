@@ -57,6 +57,44 @@
 	// Apply language to all GeoLang fields on the page
 	// -----------------------------------------------------------------------
 
+	// -----------------------------------------------------------------------
+	// DOM text-node replacement (for Dynamic Tags — plain text, no span)
+	// -----------------------------------------------------------------------
+
+	function replaceInDOM(oldText, newText) {
+		if ( !oldText || !newText || oldText === newText ) return;
+
+		// 1. Text nodes (headings, paragraphs, button labels, etc.)
+		var walker = document.createTreeWalker(
+			document.body,
+			NodeFilter.SHOW_TEXT,
+			null,
+			false
+		);
+		var nodes = [];
+		var node;
+		while ( (node = walker.nextNode()) ) {
+			if ( node.nodeValue.trim() === oldText.trim() ) {
+				nodes.push( node );
+			}
+		}
+		nodes.forEach( function (n) { n.nodeValue = newText; } );
+
+		// 2. placeholder attributes (search fields, inputs)
+		document.querySelectorAll( '[placeholder]' ).forEach( function (el) {
+			if ( el.getAttribute( 'placeholder' ) === oldText ) {
+				el.setAttribute( 'placeholder', newText );
+			}
+		} );
+
+		// 3. value attributes (submit buttons, hidden inputs)
+		document.querySelectorAll( 'input[value]' ).forEach( function (el) {
+			if ( el.getAttribute( 'value' ) === oldText ) {
+				el.setAttribute( 'value', newText );
+			}
+		} );
+	}
+
 	function applyLang(lang) {
 		// Text / HTML fields: <span class="geolang-field" data-lang-pt="..." data-lang-en="..." data-lang-es="...">
 		var fields = document.querySelectorAll('.geolang-field');
@@ -67,6 +105,20 @@
 			// Use innerHTML to support basic HTML tags in translations.
 			el.innerHTML = value;
 		});
+
+		// Dynamic Tag text fields (plain text — no span wrapper).
+		// window.GeoLangDT is emitted by PHP in wp_footer.
+		var dtData = window.GeoLangDT;
+		if ( dtData ) {
+			Object.keys( dtData ).forEach( function (key) {
+				var f = dtData[ key ];
+				var newText = f[ lang ] || f.pt || '';
+				var oldText = f.current || f.pt || '';
+				replaceInDOM( oldText, newText );
+				// Update "current" so next switch uses the right old value.
+				dtData[ key ].current = newText;
+			} );
+		}
 
 		// Image fields: <img class="geolang-image" data-lang-pt="url" data-lang-en="url" ...>
 		var images = document.querySelectorAll('.geolang-image[data-lang-' + lang + ']');

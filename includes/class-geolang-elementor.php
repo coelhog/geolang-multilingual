@@ -35,6 +35,9 @@ class GeoLang_Elementor {
 
 		// Frontend: inject translations into Elementor widgets before they render.
 		add_action( 'elementor/frontend/widget/before_render_content', array( $this, 'inject_widget_translation' ) );
+
+		// Emit Dynamic Tag text registry to footer for JS instant-switching.
+		add_action( 'wp_footer', array( 'GeoLang_Text_Tag', 'emit_dt_registry' ), 5 );
 	}
 
 	/**
@@ -637,6 +640,15 @@ class GeoLang_Text_Tag extends \Elementor\Core\DynamicTags\Tag {
 
 	use GeoLang_Tag_Controls;
 
+	/**
+	 * Registry of all Dynamic Tag text fields rendered on this page.
+	 * Emitted as window.GeoLangDT in the footer for JS instant-switching.
+	 * Structure: [ field_key => [ pt, en, es, current_lang_text ] ]
+	 *
+	 * @var array
+	 */
+	public static $dt_registry = array();
+
 	public function get_name() {
 		return 'geolang-text';
 	}
@@ -669,20 +681,43 @@ class GeoLang_Text_Tag extends \Elementor\Core\DynamicTags\Tag {
 			return;
 		}
 
-		// In the Elementor editor, output plain text — the editor renders widget
-		// text fields as text nodes, so HTML tags would show as raw markup.
+		$post_id = absint( get_the_ID() );
+		$lang    = GeoLang_Session::current();
+
+		// Always output plain text — Elementor's TEXT_CATEGORY context may be
+		// used in button labels, input placeholders, and other attribute contexts
+		// where raw HTML would appear as literal markup.
+		$val = GeoLang_Core::get_field( $post_id, $field_key, $lang, $fallback );
+		echo esc_html( $val ?: $fallback );
+
+		// Register for frontend JS switching (emitted in wp_footer via emit_dt_registry).
+		// Skip in editor — no JS switching needed there.
 		$is_editor = isset( \Elementor\Plugin::$instance->editor ) &&
 		             \Elementor\Plugin::$instance->editor->is_edit_mode();
 
-		if ( $is_editor ) {
-			$lang = GeoLang_Session::current();
-			$val  = GeoLang_Core::get_field( get_the_ID(), $field_key, $lang, $fallback );
-			echo esc_html( $val ?: $fallback );
+		if ( ! $is_editor ) {
+			$pt = GeoLang_Core::get_field( $post_id, $field_key, 'pt', $fallback );
+			$en = GeoLang_Core::get_field( $post_id, $field_key, 'en', $fallback );
+			$es = GeoLang_Core::get_field( $post_id, $field_key, 'es', $fallback );
+
+			self::$dt_registry[ $field_key ] = array(
+				'pt'      => $pt ?: $fallback,
+				'en'      => $en ?: $fallback,
+				'es'      => $es ?: $fallback,
+				'current' => $val ?: $fallback,
+			);
+		}
+	}
+
+	/**
+	 * Emits window.GeoLangDT JSON to the footer for JS text-node switching.
+	 * Hooked to wp_footer priority 5 (before frontend.js runs).
+	 */
+	public static function emit_dt_registry() {
+		if ( empty( self::$dt_registry ) ) {
 			return;
 		}
-
-		// Frontend: output span with all 3 lang data attributes — JS swaps instantly.
-		$this->render_text_field( $field_key, $fallback );
+		echo '<script>window.GeoLangDT=' . wp_json_encode( self::$dt_registry ) . ';</script>' . "\n";
 	}
 
 	private function sanitize_field_key( $key ) {
