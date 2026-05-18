@@ -37,7 +37,14 @@ class GeoLang_Menus {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Replace menu item titles when lang ≠ default.
+	 * Wrap menu item titles in a geolang-field span so JS can swap them instantly.
+	 *
+	 * For items with translations the title becomes:
+	 *   <span class="geolang-field" data-lang-pt="..." data-lang-en="..." data-lang-es="...">current</span>
+	 *
+	 * The existing frontend.js applyLang() already handles .geolang-field spans,
+	 * so no extra JS is needed. PHP also sets the correct display value for the
+	 * current cookie language (non-cached fallback).
 	 *
 	 * @param array    $items
 	 * @param stdClass $args
@@ -47,15 +54,37 @@ class GeoLang_Menus {
 		$lang    = GeoLang_Session::current();
 		$default = get_option( 'geolang_default_lang', 'pt' );
 
-		if ( $lang === $default ) {
-			return $items;
-		}
-
 		foreach ( $items as &$item ) {
-			$translated = GeoLang_Core::get_field( $item->ID, '_menu_label', $lang );
-			if ( $translated ) {
-				$item->title = $translated;
+			// Fetch translations from DB.
+			$en = GeoLang_Core::get_field( $item->ID, '_menu_label', 'en' );
+			$es = GeoLang_Core::get_field( $item->ID, '_menu_label', 'es' );
+
+			// Skip items with no translations at all — leave title untouched.
+			if ( '' === $en && '' === $es ) {
+				continue;
 			}
+
+			$pt = wp_strip_all_tags( $item->title );
+			$en = $en ?: $pt;
+			$es = $es ?: $pt;
+
+			// Determine what to display right now (PHP-side, for non-cached renders).
+			$display = $pt;
+			if ( $lang !== $default ) {
+				$translated = GeoLang_Core::get_field( $item->ID, '_menu_label', $lang );
+				if ( $translated ) {
+					$display = $translated;
+				}
+			}
+
+			// Wrap with span so JS .geolang-field handler swaps it instantly.
+			$item->title = sprintf(
+				'<span class="geolang-field" data-lang-pt="%s" data-lang-en="%s" data-lang-es="%s">%s</span>',
+				esc_attr( $pt ),
+				esc_attr( $en ),
+				esc_attr( $es ),
+				esc_html( $display )
+			);
 		}
 		unset( $item );
 
