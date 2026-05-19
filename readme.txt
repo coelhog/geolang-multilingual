@@ -4,7 +4,7 @@ Tags: multilingual, elementor, translation, language switcher, dynamic tags
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.28
+Stable tag: 1.0.29
 License: GPLv2 or later
 
 Gerenciador de conteúdo multilíngue para páginas Elementor Pro (PT / EN / ES).
@@ -89,6 +89,9 @@ Ao desinstalar o plugin em Plugins → Excluir, todos os dados são removidos:
 tabela `{prefix}geolang_strings`, opções do WordPress e transients.
 
 == Changelog ==
+
+= 1.0.29 =
+* Melhoria: trocar a bandeira de idioma agora recarrega a página automaticamente — garante que todos os elementos PHP-side (categorias WooCommerce, menus, filtros de terceiros) reflitam o novo idioma sem precisar dar F5 manualmente.
 
 = 1.0.28 =
 * Fix: nome da categoria WooCommerce agora troca instantaneamente ao clicar na bandeira — PHP emite <span class="geolang-cat-name" data-lang-pt/en/es> antes do <h2> do WC; JS localiza o span, caminha até o <h2> irmão e substitui o nó de texto, preservando o badge de contagem de produtos.

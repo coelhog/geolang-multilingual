@@ -194,7 +194,7 @@
 				btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
 			});
 
-			// Click: set cookie + apply language instantly (no reload).
+			// Click: set cookie + reload so PHP renders the page in the new language.
 			switcher.addEventListener('click', function (e) {
 				var btn = e.target.closest('.geolang-flag');
 				if (!btn) return;
@@ -204,8 +204,7 @@
 				if (newLang === window.GeoLang.currentLang) return;
 
 				setCookie(COOKIE_NAME, newLang, COOKIE_DAYS);
-				applyLang(newLang);
-				initSwitchers(newLang); // re-sync active states
+				window.location.reload();
 			});
 		});
 	}
