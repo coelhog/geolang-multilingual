@@ -64,6 +64,58 @@
 	padding: 4px 0;
 }
 
+/* ==========================================================================
+   Language-specific visibility — .geolang-only-pt / -en / -es
+   ==========================================================================
+   Add one of these CSS classes to any Elementor section, column or widget
+   via the "Advanced → CSS Classes" field to make it visible only when that
+   language is active.  All other matching sections are hidden via display:none.
+
+   The <html data-geolang="en"> attribute is set by an inline <script> in
+   <head> (before body renders), so there is zero flash of wrong content
+   even on cached pages.
+   ========================================================================== */
+
+/* Default state: hide lang-specific elements for all non-active languages.
+   We only apply display:none to the INACTIVE languages — never forcing a
+   display value on the visible one, so Elementor's own flex/grid/block
+   layout is fully preserved. */
+
+/* PT active (default — also covers when data-geolang is absent) */
+:root:not([data-geolang]) .geolang-only-en,
+:root:not([data-geolang]) .geolang-only-es,
+[data-geolang="pt"] .geolang-only-en,
+[data-geolang="pt"] .geolang-only-es { display: none !important; }
+
+/* EN active */
+[data-geolang="en"] .geolang-only-pt,
+[data-geolang="en"] .geolang-only-es { display: none !important; }
+
+/* ES active */
+[data-geolang="es"] .geolang-only-pt,
+[data-geolang="es"] .geolang-only-en { display: none !important; }
+
+/* Editor / preview: always show all (so the designer sees every section) */
+.elementor-editor-active .geolang-only-pt,
+.elementor-editor-active .geolang-only-en,
+.elementor-editor-active .geolang-only-es { display: revert !important; }
+
+/* In editor, add a subtle label so the designer knows which language each section belongs to */
+.elementor-editor-active .geolang-only-pt::before,
+.elementor-editor-active .geolang-only-en::before,
+.elementor-editor-active .geolang-only-es::before {
+	content: attr(data-geolang-label);
+	display: block;
+	background: #2271b1;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+	padding: 2px 8px;
+	pointer-events: none;
+}
+
 /* Elementor widget placeholder */
 .geolang-widget-placeholder {
 	background: #f0f6ff;

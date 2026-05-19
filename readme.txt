@@ -4,7 +4,7 @@ Tags: multilingual, elementor, translation, language switcher, dynamic tags
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.24
+Stable tag: 1.0.25
 License: GPLv2 or later
 
 Gerenciador de conteúdo multilíngue para páginas Elementor Pro (PT / EN / ES).
@@ -89,6 +89,12 @@ Ao desinstalar o plugin em Plugins → Excluir, todos os dados são removidos:
 tabela `{prefix}geolang_strings`, opções do WordPress e transients.
 
 == Changelog ==
+
+= 1.0.25 =
+* Novo: visibilidade por idioma — adicione a classe CSS geolang-only-pt, geolang-only-en ou geolang-only-es em qualquer seção/coluna/widget do Elementor (aba Avançado → Classes CSS) para exibir aquele componente apenas quando o idioma correspondente estiver ativo.
+* Técnica: script inline no <head> (< 300 bytes) define data-geolang no elemento <html> antes do body renderizar — zero flash de conteúdo errado mesmo em páginas cacheadas.
+* Troca de idioma atualiza o atributo data-geolang instantaneamente → CSS reage em < 1ms sem recarregar a página.
+* Editor Elementor: seções com geolang-only-* recebem badge colorido (🇧🇷 PT / 🇺🇸 EN / 🇪🇸 ES) para o designer identificar facilmente qual versão está editando.
 
 = 1.0.24 =
 * Novo: suporte a HTML completo nos campos de tradução — tags <p>, <ul>, <table> e estilos inline (style="font-weight:600; color:#d97a0f;") são preservados ao salvar.

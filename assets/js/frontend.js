@@ -85,6 +85,9 @@
 	}
 
 	function applyLang(lang) {
+		// Update <html data-geolang> so CSS .geolang-only-* visibility rules react instantly.
+		document.documentElement.setAttribute('data-geolang', lang);
+
 		// Text / HTML fields: <span class="geolang-field" data-lang-pt="..." data-lang-en="..." data-lang-es="...">
 		var fields = document.querySelectorAll('.geolang-field');
 		fields.forEach(function (el) {

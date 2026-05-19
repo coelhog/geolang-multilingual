@@ -37,6 +37,39 @@ class GeoLang_Elementor {
 		add_action( 'elementor/frontend/widget/before_render_content', array( $this, 'inject_widget_translation' ) );
 
 		// (GeoLangDT footer registry removed — span approach handles switching natively)
+
+		// In Elementor editor, inject a data-geolang-label attribute on .geolang-only-* elements
+		// so the designer sees which language each section belongs to.
+		add_action( 'elementor/editor/footer', array( $this, 'emit_editor_visibility_script' ) );
+	}
+
+	/**
+	 * Injects a small script in the Elementor editor footer that stamps
+	 * data-geolang-label on every .geolang-only-* section/widget so the
+	 * CSS ::before pseudo-element can display a language badge in the editor.
+	 */
+	public function emit_editor_visibility_script() {
+		?>
+<script>
+(function () {
+	var map = { pt: '🇧🇷 PT', en: '🇺🇸 EN', es: '🇪🇸 ES' };
+	function stamp() {
+		['pt', 'en', 'es'].forEach(function (l) {
+			document.querySelectorAll('.geolang-only-' + l).forEach(function (el) {
+				el.setAttribute('data-geolang-label', map[l] || l.toUpperCase());
+			});
+		});
+	}
+	// Stamp on load and whenever Elementor re-renders.
+	stamp();
+	if (window.elementor) {
+		elementor.on('preview:loaded', stamp);
+		elementor.channels && elementor.channels.data &&
+			elementor.channels.data.on('after:change', stamp);
+	}
+})();
+</script>
+		<?php
 	}
 
 	/**
