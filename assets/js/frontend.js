@@ -106,6 +106,33 @@
 			if ( val ) el.setAttribute( 'placeholder', val );
 		} );
 
+		// WooCommerce category names: <span class="geolang-cat-name" data-lang-pt="..." ...>
+		// Emitted by GeoLang before the <h2> title; we find the next sibling <h2> and
+		// replace its visible text node so the name switches instantly on flag click.
+		document.querySelectorAll('.geolang-cat-name').forEach(function (span) {
+			var val = span.getAttribute('data-lang-' + lang)
+				|| span.getAttribute('data-lang-' + DEFAULT_LANG)
+				|| '';
+			if (!val) return;
+
+			// Walk forward through siblings to find the category <h2>.
+			var h2 = span.nextElementSibling;
+			while (h2 && h2.tagName !== 'H2') {
+				h2 = h2.nextElementSibling;
+			}
+			if (!h2) return;
+
+			// Replace only the leading text node — preserves child elements
+			// such as the product-count badge <mark class="count">.
+			var replaced = false;
+			h2.childNodes.forEach(function (node) {
+				if (!replaced && node.nodeType === 3 /* TEXT_NODE */ && node.textContent.trim()) {
+					node.textContent = val;
+					replaced = true;
+				}
+			});
+		});
+
 		// Image fields: <img class="geolang-image" data-lang-pt="url" data-lang-en="url" ...>
 		var images = document.querySelectorAll('.geolang-image[data-lang-' + lang + ']');
 		images.forEach(function (img) {

@@ -43,6 +43,10 @@ class GeoLang_WC_Terms {
 		// Must run on 'wp' (after WC has registered its hooks, before templates render).
 		add_action( 'wp', array( $this, 'setup_thumbnail_override' ) );
 
+		// Frontend: emit a hidden data span before the WC category <h2> so JS can
+		// swap the name instantly on flag click — same mechanism as .geolang-field.
+		add_action( 'woocommerce_before_subcategory_title', array( $this, 'output_category_name_span' ), 20 );
+
 		// Admin: enqueue media uploader on taxonomy edit screens.
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 
@@ -66,6 +70,41 @@ class GeoLang_WC_Terms {
 	public function setup_thumbnail_override() {
 		remove_action( 'woocommerce_before_subcategory_title', 'woocommerce_subcategory_thumbnail', 10 );
 		add_action( 'woocommerce_before_subcategory_title', array( $this, 'multilingual_subcategory_thumbnail' ), 10 );
+	}
+
+	/**
+	 * Emits a hidden <span class="geolang-cat-name"> with all 3 name translations
+	 * as data-lang-* attributes immediately before the WooCommerce <h2> title.
+	 *
+	 * The frontend.js applyLang() finds this span, walks to the next sibling <h2>
+	 * and replaces its text node — enabling instant name switching on flag click
+	 * without a page reload.
+	 *
+	 * @param \WP_Term $category
+	 */
+	public function output_category_name_span( $category ) {
+		$en = get_term_meta( $category->term_id, 'geolang_name_en', true );
+		$es = get_term_meta( $category->term_id, 'geolang_name_es', true );
+
+		// Nothing to do if no translations are configured.
+		if ( ! $en && ! $es ) {
+			return;
+		}
+
+		// Always get the original PT name (unfiltered) so the span always holds
+		// the source language regardless of whether get_term filter already ran.
+		$pt = get_term_field( 'name', $category->term_id, $category->taxonomy, 'raw' );
+		$pt = $pt && ! is_wp_error( $pt ) ? $pt : wp_strip_all_tags( $category->name );
+
+		$en = $en ?: $pt;
+		$es = $es ?: $pt;
+
+		printf(
+			'<span class="geolang-cat-name" data-lang-pt="%s" data-lang-en="%s" data-lang-es="%s" style="display:none" aria-hidden="true"></span>',
+			esc_attr( $pt ),
+			esc_attr( $en ),
+			esc_attr( $es )
+		);
 	}
 
 	/**
