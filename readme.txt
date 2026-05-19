@@ -4,7 +4,7 @@ Tags: multilingual, elementor, translation, language switcher, dynamic tags
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.23
+Stable tag: 1.0.24
 License: GPLv2 or later
 
 Gerenciador de conteúdo multilíngue para páginas Elementor Pro (PT / EN / ES).
@@ -89,6 +89,11 @@ Ao desinstalar o plugin em Plugins → Excluir, todos os dados são removidos:
 tabela `{prefix}geolang_strings`, opções do WordPress e transients.
 
 == Changelog ==
+
+= 1.0.24 =
+* Novo: suporte a HTML completo nos campos de tradução — tags <p>, <ul>, <table> e estilos inline (style="font-weight:600; color:#d97a0f;") são preservados ao salvar.
+* Melhoria: wrapper automático <div> vs <span> — campos com HTML de bloco usam <div class="geolang-field"> para evitar HTML inválido; campos de texto simples continuam com <span>.
+* Melhoria: sanitização estendida (GeoLang_Core::kses_html) permite atributos style e class em todos os elementos HTML comuns, sem comprometer a segurança.
 
 = 1.0.22 =
 * Fix: tradução de menus não funcionava ao clicar na bandeira — itens de menu agora recebem span geolang-field com os 3 idiomas, aproveitando o mesmo mecanismo JS do resto do site para troca instantânea sem reload.

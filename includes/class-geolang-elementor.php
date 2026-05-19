@@ -465,9 +465,9 @@ class GeoLang_Elementor {
 	 * INSERT or UPDATE a row in the translations table.
 	 */
 	private function upsert( $post_id, $field_key, $field_type, $pt, $en, $es ) {
-		$lang_pt = wp_kses_post( $pt );
-		$lang_en = wp_kses_post( $en );
-		$lang_es = wp_kses_post( $es );
+		$lang_pt = GeoLang_Core::kses_html( $pt );
+		$lang_en = GeoLang_Core::kses_html( $en );
+		$lang_es = GeoLang_Core::kses_html( $es );
 
 		if ( 'url' === $field_type ) {
 			$lang_pt = esc_url_raw( $lang_pt );
@@ -613,20 +613,31 @@ trait GeoLang_Tag_Controls {
 	}
 
 	/**
-	 * Renders a <span> with all 3 language values as data attributes.
+	 * Renders a wrapper element with all 3 language values as data attributes.
 	 * JS reads the cookie and shows the right language instantly — no reload needed.
+	 *
+	 * Uses <div> when any translation contains block-level HTML (<p>, <ul>, etc.)
+	 * to avoid invalid nesting of block elements inside <span>.
+	 * Uses <span> for plain text and inline-only HTML (buttons, headings, etc.).
 	 */
 	protected function render_text_field( $field_key, $fallback = '' ) {
 		$values  = $this->resolve_all( $field_key, $fallback );
 		$default = GeoLang_Session::current();
 		$display = $values[ $default ] ?? $values['pt'];
 
+		// Choose wrapper: div for block HTML content, span for inline/plain text.
+		$has_block = GeoLang_Core::has_block_html( $values['pt'] )
+		          || GeoLang_Core::has_block_html( $values['en'] )
+		          || GeoLang_Core::has_block_html( $values['es'] );
+		$tag = $has_block ? 'div' : 'span';
+
 		printf(
-			'<span class="geolang-field" data-lang-pt="%s" data-lang-en="%s" data-lang-es="%s">%s</span>',
+			'<%1$s class="geolang-field" data-lang-pt="%2$s" data-lang-en="%3$s" data-lang-es="%4$s">%5$s</%1$s>',
+			$tag,
 			esc_attr( $values['pt'] ),
 			esc_attr( $values['en'] ),
 			esc_attr( $values['es'] ),
-			wp_kses_post( $display )
+			GeoLang_Core::kses_html( $display )
 		);
 	}
 }
@@ -1043,14 +1054,21 @@ class GeoLang_Field_Manager_Widget extends \Elementor\Widget_Base {
 			$display = $all_vals['pt'];
 		}
 
-		// Output span with all three lang data-attributes so frontend.js can
+		// Output wrapper with all three lang data-attributes so frontend.js can
 		// swap the content instantly when the visitor clicks a language flag.
+		// Use <div> for block-level HTML content, <span> for inline/plain text.
+		$has_block = GeoLang_Core::has_block_html( $all_vals['pt'] )
+		          || GeoLang_Core::has_block_html( $all_vals['en'] )
+		          || GeoLang_Core::has_block_html( $all_vals['es'] );
+		$tag = $has_block ? 'div' : 'span';
+
 		printf(
-			'<span class="geolang-field" data-lang-pt="%s" data-lang-en="%s" data-lang-es="%s">%s</span>',
+			'<%1$s class="geolang-field" data-lang-pt="%2$s" data-lang-en="%3$s" data-lang-es="%4$s">%5$s</%1$s>',
+			$tag,
 			esc_attr( $all_vals['pt'] ),
 			esc_attr( $all_vals['en'] ),
 			esc_attr( $all_vals['es'] ),
-			wp_kses_post( $display )
+			GeoLang_Core::kses_html( $display )
 		);
 	}
 }

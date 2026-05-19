@@ -117,6 +117,47 @@ class GeoLang_Core {
 	}
 
 	/**
+	 * Sanitizes HTML translation content.
+	 *
+	 * Extends wp_kses_post() to also allow inline `style` and `class` attributes
+	 * on common elements, so that styled content like
+	 * <span style="font-weight:600; color:#d97a0f;"> is preserved.
+	 *
+	 * @param string $content Raw HTML content.
+	 * @return string Sanitized HTML.
+	 */
+	public static function kses_html( $content ) {
+		$allowed = wp_kses_allowed_html( 'post' );
+
+		// Elements that may carry inline style/class in translation content.
+		$styled = array( 'p', 'span', 'div', 'a', 'strong', 'em', 'b', 'i', 'u',
+		                 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+		                 'blockquote', 'table', 'thead', 'tbody', 'tr', 'td', 'th' );
+
+		foreach ( $styled as $tag ) {
+			if ( ! isset( $allowed[ $tag ] ) ) {
+				$allowed[ $tag ] = array();
+			}
+			$allowed[ $tag ]['style'] = true;
+			$allowed[ $tag ]['class'] = true;
+			$allowed[ $tag ]['id']    = true;
+		}
+
+		return wp_kses( $content, $allowed );
+	}
+
+	/**
+	 * Returns true if $html contains any block-level HTML tag.
+	 * Used to decide whether to wrap in <div> vs <span>.
+	 *
+	 * @param string $html
+	 * @return bool
+	 */
+	public static function has_block_html( $html ) {
+		return (bool) preg_match( '/<(p|div|ul|ol|h[1-6]|blockquote|table|figure)\b/i', $html );
+	}
+
+	/**
 	 * Returns all field keys registered for a given post_id.
 	 *
 	 * @param int $post_id

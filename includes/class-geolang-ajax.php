@@ -35,9 +35,9 @@ class GeoLang_Ajax {
 		$post_id    = absint( $_POST['post_id'] ?? 0 );
 		$field_key  = $this->sanitize_field_key( wp_unslash( $_POST['field_key'] ?? '' ) );
 		$field_type = $this->sanitize_field_type( wp_unslash( $_POST['field_type'] ?? 'text' ) );
-		$lang_pt    = wp_kses_post( wp_unslash( $_POST['lang_pt'] ?? '' ) );
-		$lang_en    = wp_kses_post( wp_unslash( $_POST['lang_en'] ?? '' ) );
-		$lang_es    = wp_kses_post( wp_unslash( $_POST['lang_es'] ?? '' ) );
+		$lang_pt    = GeoLang_Core::kses_html( wp_unslash( $_POST['lang_pt'] ?? '' ) );
+		$lang_en    = GeoLang_Core::kses_html( wp_unslash( $_POST['lang_en'] ?? '' ) );
+		$lang_es    = GeoLang_Core::kses_html( wp_unslash( $_POST['lang_es'] ?? '' ) );
 
 		if ( ! $post_id || ! $field_key ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid parameters.', 'geolang-multilingual' ) ) );
