@@ -4,7 +4,7 @@ Tags: multilingual, elementor, translation, language switcher, dynamic tags
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.25
+Stable tag: 1.0.26
 License: GPLv2 or later
 
 Gerenciador de conteúdo multilíngue para páginas Elementor Pro (PT / EN / ES).
@@ -89,6 +89,10 @@ Ao desinstalar o plugin em Plugins → Excluir, todos os dados são removidos:
 tabela `{prefix}geolang_strings`, opções do WordPress e transients.
 
 == Changelog ==
+
+= 1.0.26 =
+* Novo: imagem por idioma nas categorias de produto WooCommerce — em Produtos → Categorias → editar categoria, agora aparecem os campos "📷 Imagem EN" e "📷 Imagem ES" com seletor de mídia nativo do WordPress.
+* Técnica: filtro get_term_metadata intercepta thumbnail_id no frontend e retorna o attachment ID do idioma ativo quando definido; sem risco de recursão (chaves internas são geolang_image_en/es, não thumbnail_id).
 
 = 1.0.25 =
 * Novo: visibilidade por idioma — adicione a classe CSS geolang-only-pt, geolang-only-en ou geolang-only-es em qualquer seção/coluna/widget do Elementor (aba Avançado → Classes CSS) para exibir aquele componente apenas quando o idioma correspondente estiver ativo.
