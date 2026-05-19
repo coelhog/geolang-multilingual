@@ -58,40 +58,29 @@
 	// -----------------------------------------------------------------------
 
 	// -----------------------------------------------------------------------
-	// DOM text-node replacement (for Dynamic Tags — plain text, no span)
+	// Placeholder initialisation (Dynamic Tags in attribute contexts)
+	// When a GeoLang Dynamic Tag is applied to an input placeholder, Elementor
+	// runs esc_attr() on the span HTML, storing it as escaped text in the
+	// placeholder attribute.  We detect "geolang-field" in the value, parse the
+	// escaped span once, store the translations as data-* attributes, and apply
+	// the right language on every applyLang() call.
 	// -----------------------------------------------------------------------
 
-	function replaceInDOM(oldText, newText) {
-		if ( !oldText || !newText || oldText === newText ) return;
-
-		// 1. Text nodes (headings, paragraphs, button labels, etc.)
-		var walker = document.createTreeWalker(
-			document.body,
-			NodeFilter.SHOW_TEXT,
-			null,
-			false
-		);
-		var nodes = [];
-		var node;
-		while ( (node = walker.nextNode()) ) {
-			if ( node.nodeValue.trim() === oldText.trim() ) {
-				nodes.push( node );
-			}
-		}
-		nodes.forEach( function (n) { n.nodeValue = newText; } );
-
-		// 2. placeholder attributes (search fields, inputs)
+	function initPlaceholders() {
 		document.querySelectorAll( '[placeholder]' ).forEach( function (el) {
-			if ( el.getAttribute( 'placeholder' ) === oldText ) {
-				el.setAttribute( 'placeholder', newText );
-			}
-		} );
+			var raw = el.getAttribute( 'placeholder' );
+			if ( !raw || raw.indexOf( 'geolang-field' ) === -1 ) return;
 
-		// 3. value attributes (submit buttons, hidden inputs)
-		document.querySelectorAll( 'input[value]' ).forEach( function (el) {
-			if ( el.getAttribute( 'value' ) === oldText ) {
-				el.setAttribute( 'value', newText );
-			}
+			// Parse the escaped HTML to extract data attributes.
+			var tmp = document.createElement( 'div' );
+			tmp.innerHTML = raw;
+			var span = tmp.querySelector( '.geolang-field' );
+			if ( !span ) return;
+
+			el.setAttribute( 'data-glph-pt', span.getAttribute( 'data-lang-pt' ) || '' );
+			el.setAttribute( 'data-glph-en', span.getAttribute( 'data-lang-en' ) || '' );
+			el.setAttribute( 'data-glph-es', span.getAttribute( 'data-lang-es' ) || '' );
+			el.classList.add( 'geolang-placeholder-field' );
 		} );
 	}
 
@@ -106,19 +95,13 @@
 			el.innerHTML = value;
 		});
 
-		// Dynamic Tag text fields (plain text — no span wrapper).
-		// window.GeoLangDT is emitted by PHP in wp_footer.
-		var dtData = window.GeoLangDT;
-		if ( dtData ) {
-			Object.keys( dtData ).forEach( function (key) {
-				var f = dtData[ key ];
-				var newText = f[ lang ] || f.pt || '';
-				var oldText = f.current || f.pt || '';
-				replaceInDOM( oldText, newText );
-				// Update "current" so next switch uses the right old value.
-				dtData[ key ].current = newText;
-			} );
-		}
+		// Placeholder fields initialised by initPlaceholders().
+		document.querySelectorAll( '.geolang-placeholder-field' ).forEach( function (el) {
+			var val = el.getAttribute( 'data-glph-' + lang )
+			       || el.getAttribute( 'data-glph-pt' )
+			       || '';
+			if ( val ) el.setAttribute( 'placeholder', val );
+		} );
 
 		// Image fields: <img class="geolang-image" data-lang-pt="url" data-lang-en="url" ...>
 		var images = document.querySelectorAll('.geolang-image[data-lang-' + lang + ']');
@@ -206,6 +189,7 @@
 		window.GeoLang         = window.GeoLang || {};
 		window.GeoLang.currentLang = lang;
 
+		initPlaceholders(); // parse escaped GeoLang spans in placeholder attrs once
 		applyLang(lang);
 		initSwitchers(lang);
 	}
