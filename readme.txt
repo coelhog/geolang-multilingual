@@ -4,7 +4,7 @@ Tags: multilingual, elementor, translation, language switcher, dynamic tags
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.30
+Stable tag: 1.0.31
 License: GPLv2 or later
 
 Gerenciador de conteúdo multilíngue para páginas Elementor Pro (PT / EN / ES).
@@ -89,6 +89,10 @@ Ao desinstalar o plugin em Plugins → Excluir, todos os dados são removidos:
 tabela `{prefix}geolang_strings`, opções do WordPress e transients.
 
 == Changelog ==
+
+= 1.0.31 =
+* Novo: botão "➕ Novo campo" em Gerenciar Traduções — cria campos globais (post_id=0) com chave, PT/EN/ES, e exibe o shortcode pronto para copiar após salvar.
+* Melhoria: shortcode [geolang key="..."] sem post_id agora busca campo global (post_id=0) primeiro, depois o post atual como fallback.
 
 = 1.0.30 =
 * Novo: shortcode [geolang key="..."] — retorna o texto traduzido de um campo GeoLang no idioma atual. Use em campos de texto de qualquer plugin que processe shortcodes. Suporta atributos opcionais: fallback="texto padrão" e post_id="42".

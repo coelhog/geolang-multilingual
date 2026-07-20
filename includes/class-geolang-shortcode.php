@@ -49,9 +49,18 @@ class GeoLang_Shortcode {
 			return esc_html( $atts['fallback'] );
 		}
 
-		$post_id = $atts['post_id'] ? absint( $atts['post_id'] ) : (int) get_the_ID();
-		$lang    = GeoLang_Session::current();
-		$value   = GeoLang_Core::get_field( $post_id, $key, $lang, $atts['fallback'] );
+		$lang = GeoLang_Session::current();
+
+		if ( $atts['post_id'] ) {
+			// Explicit post_id: look only there.
+			$value = GeoLang_Core::get_field( absint( $atts['post_id'] ), $key, $lang, $atts['fallback'] );
+		} else {
+			// No post_id: try global (post_id=0) first, then current post as fallback.
+			$value = GeoLang_Core::get_field( 0, $key, $lang, '' );
+			if ( '' === $value ) {
+				$value = GeoLang_Core::get_field( (int) get_the_ID(), $key, $lang, $atts['fallback'] );
+			}
+		}
 
 		return esc_html( $value );
 	}

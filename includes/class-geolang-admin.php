@@ -281,6 +281,9 @@ class GeoLang_Admin {
 			</div>
 
 			<div style="margin:8px 0 4px;display:flex;gap:8px;align-items:center;">
+				<button class="button button-primary" id="geolang-new-field-btn">
+					➕ <?php esc_html_e( 'Novo campo', 'geolang-multilingual' ); ?>
+				</button>
 				<button class="button button-primary" id="geolang-ai-translate-selected" style="background:#7c3aed;border-color:#7c3aed;">
 					✨ <?php esc_html_e( 'Traduzir selecionados', 'geolang-multilingual' ); ?>
 				</button>
@@ -309,6 +312,53 @@ class GeoLang_Admin {
 					</tbody>
 				</table>
 				<div id="geolang-pagination"></div>
+			</div>
+
+			<!-- New field modal -->
+			<div id="geolang-new-modal" class="geolang-modal" style="display:none;" role="dialog" aria-modal="true">
+				<div class="geolang-modal__overlay"></div>
+				<div class="geolang-modal__box">
+					<button class="geolang-modal__close" data-target="geolang-new-modal" aria-label="<?php esc_attr_e( 'Fechar', 'geolang-multilingual' ); ?>">&times;</button>
+					<h2><?php esc_html_e( 'Novo campo', 'geolang-multilingual' ); ?></h2>
+
+					<div class="geolang-modal__field" style="margin-bottom:12px;">
+						<label style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'Chave (key)', 'geolang-multilingual' ); ?></label>
+						<input type="text" id="geolang-new-key" placeholder="ex: hero_title, ball, cta_label"
+							style="width:100%;font-family:monospace;" />
+						<p style="margin:4px 0 0;color:#646970;font-size:12px;">
+							<?php esc_html_e( 'Só letras minúsculas, números e _ (underscore). Ex: hero_title', 'geolang-multilingual' ); ?>
+						</p>
+					</div>
+
+					<div class="geolang-modal__fields">
+						<div class="geolang-modal__field">
+							<label><?php esc_html_e( '🇧🇷 Português (PT)', 'geolang-multilingual' ); ?></label>
+							<textarea id="geolang-new-pt" rows="3"></textarea>
+						</div>
+						<div class="geolang-modal__field">
+							<label><?php esc_html_e( '🇺🇸 English (EN)', 'geolang-multilingual' ); ?></label>
+							<textarea id="geolang-new-en" rows="3"></textarea>
+						</div>
+						<div class="geolang-modal__field">
+							<label><?php esc_html_e( '🇪🇸 Español (ES)', 'geolang-multilingual' ); ?></label>
+							<textarea id="geolang-new-es" rows="3"></textarea>
+						</div>
+					</div>
+
+					<!-- Shortcode shown after save -->
+					<div id="geolang-new-shortcode" style="display:none;margin-top:12px;padding:10px 14px;background:#f0f6ff;border:1px solid #c3d4e9;border-radius:4px;">
+						<p style="margin:0 0 6px;font-weight:600;font-size:13px;"><?php esc_html_e( '✅ Campo salvo! Copie o shortcode:', 'geolang-multilingual' ); ?></p>
+						<div style="display:flex;gap:8px;align-items:center;">
+							<code id="geolang-new-shortcode-value" style="flex:1;padding:6px 10px;background:#fff;border:1px solid #c3d4e9;border-radius:3px;font-size:13px;user-select:all;"></code>
+							<button type="button" class="button" id="geolang-new-shortcode-copy"><?php esc_html_e( '📋 Copiar', 'geolang-multilingual' ); ?></button>
+						</div>
+					</div>
+
+					<div class="geolang-modal__actions" style="margin-top:16px;">
+						<button id="geolang-new-save" class="button button-primary"><?php esc_html_e( 'Salvar campo', 'geolang-multilingual' ); ?></button>
+						<button class="button geolang-modal__close" data-target="geolang-new-modal"><?php esc_html_e( 'Fechar', 'geolang-multilingual' ); ?></button>
+					</div>
+				</div>
 			</div>
 
 			<!-- Edit modal -->

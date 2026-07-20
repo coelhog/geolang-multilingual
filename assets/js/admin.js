@@ -76,7 +76,26 @@
 		$(document).on('click', '.geolang-edit-btn', openModal);
 		$('#geolang-modal-save').on('click', saveModal);
 		$('#geolang-modal-cancel, .geolang-modal__close, .geolang-modal__overlay').on('click', closeModal);
-		$(document).on('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+		$(document).on('keydown', function (e) { if (e.key === 'Escape') { closeModal(); closeNewModal(); } });
+
+		// New field modal.
+		$('#geolang-new-field-btn').on('click', openNewModal);
+		$('#geolang-new-save').on('click', saveNewField);
+		$('#geolang-new-shortcode-copy').on('click', function () {
+			var code = $('#geolang-new-shortcode-value').text();
+			if (navigator.clipboard) {
+				navigator.clipboard.writeText(code).then(function () {
+					$('#geolang-new-shortcode-copy').text('✅ Copiado!');
+					setTimeout(function () { $('#geolang-new-shortcode-copy').text('📋 Copiar'); }, 2000);
+				});
+			} else {
+				var $tmp = $('<textarea>').val(code).appendTo('body').select();
+				document.execCommand('copy');
+				$tmp.remove();
+				$('#geolang-new-shortcode-copy').text('✅ Copiado!');
+				setTimeout(function () { $('#geolang-new-shortcode-copy').text('📋 Copiar'); }, 2000);
+			}
+		});
 
 		// Delete.
 		$(document).on('click', '.geolang-delete-btn', deleteRow);
@@ -323,6 +342,58 @@
 	}
 
 	// -----------------------------------------------------------------------
+	// New field modal
+	// -----------------------------------------------------------------------
+
+	function openNewModal() {
+		$('#geolang-new-key').val('');
+		$('#geolang-new-pt').val('');
+		$('#geolang-new-en').val('');
+		$('#geolang-new-es').val('');
+		$('#geolang-new-shortcode').hide();
+		$('#geolang-new-modal').fadeIn(150);
+		$('#geolang-new-key').focus();
+	}
+
+	function closeNewModal() {
+		$('#geolang-new-modal').fadeOut(150);
+	}
+
+	function saveNewField() {
+		var key = $('#geolang-new-key').val().trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+		if (!key) {
+			alert('Digite uma chave para o campo.');
+			$('#geolang-new-key').focus();
+			return;
+		}
+
+		var $btn = $('#geolang-new-save');
+		$btn.prop('disabled', true).text('Salvando…');
+
+		$.post(ajaxCfg.ajaxUrl, {
+			action:     'geolang_save_field',
+			nonce:      ajaxCfg.nonce,
+			post_id:    0,
+			field_key:  key,
+			field_type: 'text',
+			lang_pt:    $('#geolang-new-pt').val(),
+			lang_en:    $('#geolang-new-en').val(),
+			lang_es:    $('#geolang-new-es').val(),
+		})
+		.done(function (res) {
+			if (res.success) {
+				var shortcode = '[geolang key="' + key + '"]';
+				$('#geolang-new-shortcode-value').text(shortcode);
+				$('#geolang-new-shortcode').show();
+				loadPage(currentPage); // refresh table
+			} else {
+				alert((res.data && res.data.message) || 'Erro ao salvar.');
+			}
+		})
+		.fail(function () { alert('Erro de conexão.'); })
+		.always(function () { $btn.prop('disabled', false).text('Salvar campo'); });
+	}
+
 	// Modal
 	// -----------------------------------------------------------------------
 
@@ -342,7 +413,13 @@
 		$('#geolang-edit-pt').focus();
 	}
 
-	function closeModal() {
+	function closeModal(e) {
+		// If triggered by a close button with data-target, close that modal.
+		var target = e && $(e.currentTarget).data('target');
+		if (target === 'geolang-new-modal') {
+			closeNewModal();
+			return;
+		}
 		$('#geolang-modal').fadeOut(150);
 	}
 
