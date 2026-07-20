@@ -370,9 +370,9 @@
 		var $btn = $('#geolang-new-save');
 		$btn.prop('disabled', true).text('Salvando…');
 
-		$.post(ajaxCfg.ajaxUrl, {
+		$.post(ajaxUrl, {
 			action:     'geolang_save_field',
-			nonce:      ajaxCfg.nonce,
+			nonce:      nonce,
 			post_id:    0,
 			field_key:  key,
 			field_type: 'text',
@@ -385,7 +385,7 @@
 				var shortcode = '[geolang key="' + key + '"]';
 				$('#geolang-new-shortcode-value').text(shortcode);
 				$('#geolang-new-shortcode').show();
-				loadPage(currentPage); // refresh table
+				loadRows(); // refresh table
 			} else {
 				alert((res.data && res.data.message) || 'Erro ao salvar.');
 			}
