@@ -39,12 +39,13 @@ class GeoLang_Ajax {
 		$lang_en    = GeoLang_Core::kses_html( wp_unslash( $_POST['lang_en'] ?? '' ) );
 		$lang_es    = GeoLang_Core::kses_html( wp_unslash( $_POST['lang_es'] ?? '' ) );
 
-		if ( ! $post_id || ! $field_key ) {
+		if ( ! $field_key ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid parameters.', 'geolang-multilingual' ) ) );
 		}
 
-		// Verify user can edit the specific post.
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		// post_id=0 means global field — only check edit_posts capability.
+		// For post-specific fields, also verify the user can edit that post.
+		if ( $post_id && ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_send_json_error( array( 'message' => __( 'You cannot edit this post.', 'geolang-multilingual' ) ), 403 );
 		}
 

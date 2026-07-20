@@ -4,7 +4,7 @@ Tags: multilingual, elementor, translation, language switcher, dynamic tags
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.32
+Stable tag: 1.0.33
 License: GPLv2 or later
 
 Gerenciador de conteúdo multilíngue para páginas Elementor Pro (PT / EN / ES).
@@ -89,6 +89,9 @@ Ao desinstalar o plugin em Plugins → Excluir, todos os dados são removidos:
 tabela `{prefix}geolang_strings`, opções do WordPress e transients.
 
 == Changelog ==
+
+= 1.0.33 =
+* Fix: salvar campo global (post_id=0) retornava "Invalid parameters" — validação PHP rejeitava post_id=0 como inválido e verificava edit_post(0) desnecessariamente.
 
 = 1.0.32 =
 * Fix: botão "Salvar campo" no modal "Novo campo" ficava preso em "Salvando…" — variáveis de AJAX erradas (ajaxCfg vs cfg) e função de reload inexistente (loadPage vs loadRows).
