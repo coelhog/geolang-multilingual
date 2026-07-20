@@ -16,6 +16,44 @@ class GeoLang_Shortcode {
 
 	public function __construct() {
 		add_shortcode( 'geolang_switcher', array( $this, 'render_switcher' ) );
+		add_shortcode( 'geolang',          array( $this, 'render_field' ) );
+	}
+
+	/**
+	 * [geolang key="..." fallback="..." post_id="..."]
+	 *
+	 * Returns the translated text for the given field key in the current language.
+	 * Use inside any plugin field that processes shortcodes.
+	 *
+	 * Examples:
+	 *   [geolang key="ball"]
+	 *   [geolang key="hero_title" fallback="Bem-vindo"]
+	 *   [geolang key="cta_label" post_id="42"]
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Plain text (HTML-escaped).
+	 */
+	public function render_field( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'key'      => '',
+				'post_id'  => 0,
+				'fallback' => '',
+			),
+			$atts,
+			'geolang'
+		);
+
+		$key = sanitize_key( $atts['key'] );
+		if ( ! $key ) {
+			return esc_html( $atts['fallback'] );
+		}
+
+		$post_id = $atts['post_id'] ? absint( $atts['post_id'] ) : (int) get_the_ID();
+		$lang    = GeoLang_Session::current();
+		$value   = GeoLang_Core::get_field( $post_id, $key, $lang, $atts['fallback'] );
+
+		return esc_html( $value );
 	}
 
 	public function render_switcher( $atts ) {
